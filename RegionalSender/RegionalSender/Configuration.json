@@ -1,0 +1,7 @@
+{
+  "ProcessorPort": 10000,
+  "ReceiverListenPort": 10500,
+  "ReceiverSenderPort": 10700,
+  "DnsAddress": "http://192.168.0.19:8080",
+  "AuthAddress": "http://localhost:5000"
+}

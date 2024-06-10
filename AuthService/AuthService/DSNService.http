@@ -1,0 +1,6 @@
+@DSNService_HostAddress = http://localhost:5287
+
+GET {{DSNService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

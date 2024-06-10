@@ -1,0 +1,8 @@
+{
+  "dnsAddress": "http://192.168.0.19:8080",
+  "authAddress": "http://192.168.0.6:5000",
+  "senderPort": 9090,
+  "regionalSenderPort": 10100,
+  "regionalListenPort": 11100,
+  "sizeFromConfig": 4000000
+}

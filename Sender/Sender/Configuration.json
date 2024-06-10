@@ -1,0 +1,5 @@
+{
+  "Port": 48512,
+  "DnsAddress": "http://192.168.0.19:8080",
+  "AuthAddress": "http://localhost:5000"
+}
