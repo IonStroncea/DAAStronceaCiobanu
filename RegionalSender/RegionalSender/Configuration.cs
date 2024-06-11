@@ -8,5 +8,7 @@ namespace RegionalSender
         public int ReceiverSenderPort { get; set; }
         public string DnsAddress { get; set; }
         public string AuthAddress { get; set; }
+
+        public int MaxUsers { get; set; } = 1;
     }
 }

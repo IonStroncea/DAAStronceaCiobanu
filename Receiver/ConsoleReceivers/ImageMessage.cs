@@ -1,4 +1,4 @@
-﻿namespace RegionalSender
+﻿namespace ConsoleReceivers
 {
     public class ImageMessage
     {
@@ -17,6 +17,5 @@
         public int Count { get; set; }
 
         public List<byte> Image { get; set; }
-
     }
 }

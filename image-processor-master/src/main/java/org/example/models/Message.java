@@ -17,9 +17,12 @@ public class Message {
     private String Auth;
     private String Time;
     private String Theme;
+    private int Size;
+    private int Count;
     private int X;  //number of pixels
     private int Y;
     private int[] Image; //the image stored in byte array
+
 
 
     public boolean isEmpty() {

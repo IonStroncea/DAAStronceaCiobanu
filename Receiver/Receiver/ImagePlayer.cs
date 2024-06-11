@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -28,7 +29,7 @@ namespace Receiver
         {
             _disposed = true;
         }
-        public void Run(Form form, ref Bitmap image, object imageLock, Panel panel)
+        public void Run(Form form, List<Frame> image, object imageLock, Panel panel)
         {
             _configuration = JsonConvert.DeserializeObject<Configuration>(File.ReadAllText("Configuration.json")) ?? new Configuration();
 
@@ -49,45 +50,55 @@ namespace Receiver
             udpClient.Close();
 
 
-            DateTime? lastShown = null;
-            DateTime? lastShownImageTime = null;
+            DateTime? firstImageShown = null;
+            DateTime? firstImage = null;
             string format = "yyyy-MM-ddTHH:mm:ss.fffffffK";
+            DateTime now = DateTime.Now;
+            Thread.Sleep(10000);
             while (!_disposed)
             {
-                DateTime now = DateTime.Now;
+                
                 try
                 {
-                    ImageMessage? message = new ImageMessage();
-                    if (lastShown == null)
+                    List<ImageMessage> imagesToShow = new();
+                    if (firstImageShown == null)
                     {
-                        message = images.ToList().OrderBy(x => DateTime.ParseExact(x.Time, format, System.Globalization.CultureInfo.InvariantCulture)).First();
-                        lastShownImageTime = DateTime.ParseExact(message.Time, format, System.Globalization.CultureInfo.InvariantCulture);
-                    }
-                    else
-                    {
-                        message = images.ToList().OrderBy(x => DateTime.ParseExact(x.Time, format, System.Globalization.CultureInfo.InvariantCulture)).Where(x => Math.Abs((DateTime.ParseExact(x.Time, format, System.Globalization.CultureInfo.InvariantCulture) - lastShownImageTime).Value.TotalMilliseconds - (now-lastShown).Value.TotalMilliseconds) < 6).First();
-                        lastShownImageTime = DateTime.ParseExact(message.Time, format, System.Globalization.CultureInfo.InvariantCulture);
+                        firstImageShown = DateTime.ParseExact(images.OrderBy(x => DateTime.ParseExact(x.Time, format, CultureInfo.InvariantCulture)).First().Time, format, CultureInfo.InvariantCulture);
+                        firstImage = DateTime.Now;
                     }
 
-                    if (message != null)
+                    imagesToShow = images.Where(x =>
                     {
-                        
-                        var image1 = ByteArrayToBitmap(message.Image.ToArray());
-                        lock (imageLock)
+                        DateTime imageTime = DateTime.ParseExact(x.Time, format, CultureInfo.InvariantCulture);
+
+                        return Math.Abs(((now - firstImage) - (imageTime - firstImageShown)).Value.TotalMilliseconds) < 10;
+                    }).ToList();
+
+                    images = new ConcurrentBag<ImageMessage>(images.Except(imagesToShow).ToList());
+
+                    lock (imageLock)
+                    {
+                        imagesToShow.ForEach(x =>
                         {
-                            image = image1;
-                            form.Invoke((Action)delegate { panel.Invalidate(); });
-                        }
+                            DateTime lastImage = image[x.Count].Time;
+                            DateTime imageTime = DateTime.ParseExact(x.Time, format, CultureInfo.InvariantCulture);
+                            if (lastImage < imageTime)
+                            {
+                                image[x.Count].Time = imageTime;
+                                image[x.Count].Bitmap = ByteArrayToBitmap(x.Image.ToArray());
+                            }
+
+                        });
                     }
 
-                    lastShown = now;
+                    form.Invoke((Action)delegate { panel.Invalidate(); });
                 }
                 catch(Exception e)
                 {
                     int n = 4;
                 }
-                
-                Thread.Sleep(2);
+                now = DateTime.Now;
+                Thread.Sleep(5);
             }
         }
 
@@ -121,7 +132,10 @@ namespace Receiver
                         images.Add(message);
                     }
                 }
-                catch { }
+                catch (Exception e) 
+                {
+                    int n = 4;
+                }
                 Thread.Sleep(2);
             }
         }

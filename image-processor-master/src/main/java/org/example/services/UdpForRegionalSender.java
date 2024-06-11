@@ -46,9 +46,9 @@ public class UdpForRegionalSender {
                             jsonMessage.getBytes().length,
                             InetAddress.getByName(message1.getIpAddress()), message1.getPort());
                     datagramSocket.send(sendPacket);
-                    System.out.println("Address:"+message1.getIpAddress() + ":" + message1.getPort());
-                    System.out.println("Send theme:"+message.getTheme());
-                    System.out.println("Image time:"+message.getTime());
+//                    System.out.println("Address:"+message1.getIpAddress() + ":" + message1.getPort());
+//                    System.out.println("Send theme:"+message.getTheme());
+//                    System.out.println("Image time:"+message.getTime());
                 } catch (Exception ignored) {
 
                 }

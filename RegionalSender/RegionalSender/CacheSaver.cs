@@ -10,8 +10,8 @@ namespace RegionalSender
         private ConcurrentBag<ImageMessage> _list = new ConcurrentBag<ImageMessage>();
         private ReceiverConnection _connection;
         private bool _disposed;
-        private double _lastTime = 30 * 1000;
-        private double _lastSendTime = 15 * 1000;
+        private double _lastTime = 30 * 100;
+        private double _lastSendTime = 15 * 100;
 
         public CacheSaver(ReceiverConnection connection)
         {

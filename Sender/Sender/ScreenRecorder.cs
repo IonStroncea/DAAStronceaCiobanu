@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -16,6 +17,7 @@ namespace Sender
         private volatile UdpClient _udpClient;
         private volatile Configuration _configuration;
         private volatile string _conntectionString;
+        private int Size = 7;
 
         public void Run(Form form)
         {
@@ -39,16 +41,42 @@ namespace Sender
                 }
 
                 int x = form.Location.X;
-                int y = form.Location.Y;
+                int y = form.Location.Y + 40;
                 int width = form.Width;
-                int height = form.Height;
+                int height = form.Height-40;
+                int frameWidth = width / Size;
+                int frameHeight = height / Size;
 
-                Rectangle rect = new Rectangle(x, y+10, width, height-10);
-                Bitmap bmp = new Bitmap(rect.Width, rect.Height, PixelFormat.Format16bppRgb565);
-                Graphics g = Graphics.FromImage(bmp);
-                g.CopyFromScreen(rect.Left, rect.Top, 0, 0, bmp.Size, CopyPixelOperation.SourceCopy);
+               Rectangle rect = new Rectangle(x , y, width, height);
+                Bitmap bigBitmap = new Bitmap(rect.Width, rect.Height, PixelFormat.Format16bppRgb565);
+                Graphics bigG = Graphics.FromImage(bigBitmap);
+                bigG.CopyFromScreen(rect.Left, rect.Top, 0, 0, bigBitmap.Size, CopyPixelOperation.SourceCopy);
+                
 
-                SendOneImage(bmp, width, height-10);
+                List<Bitmap> images = new List<Bitmap>();
+                for (int i = 0; i < Size; i++)
+                {
+                    for (int j = 0; j < Size; j++)
+                    {
+                        Rectangle m_Rectangle = new Rectangle(i* frameWidth, j* frameHeight, frameWidth, frameHeight);
+                        Bitmap bmp = new Bitmap(frameWidth, frameHeight, PixelFormat.Format16bppRgb565);
+                        using (Graphics g = Graphics.FromImage(bmp))
+                        {
+                            g.DrawImage(bigBitmap, new Rectangle(0, 0, frameWidth, frameHeight), m_Rectangle, GraphicsUnit.Pixel);
+                            //g.CopyFromScreen(m_Rectangle.Left, m_Rectangle.Top, 0,0,bmp.Size, CopyPixelOperation.SourceCopy);
+                        }
+
+                        images.Add(bmp);  
+                    }
+                }
+                for (int i = 0; i < Size; i++)
+                {
+                    for (int j = 0; j < Size; j++)
+                    {
+                        SendOneImage(images[i*Size + j], frameWidth, frameHeight, Size, i * Size + j);
+                    }
+                }
+                lastMeasurmend = current;
             }
         }
 
@@ -62,7 +90,7 @@ namespace Sender
             };
         }
 
-        private void SendOneImage(Bitmap bmp, int width, int height)
+        private void SendOneImage(Bitmap bmp, int width, int height, int size, int count)
         {
             byte[] arr = BitmapToByteArray(bmp);
 
@@ -72,7 +100,9 @@ namespace Sender
                 Image = arr.ToList(),
                 Auth = _authString,
                 Theme = "ion",
-                Time = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffffffK")
+                Time = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffffffK"),
+                Size = size,
+                Count = count
             };
 
             string jsonString = JsonConvert.SerializeObject(imageMessage);

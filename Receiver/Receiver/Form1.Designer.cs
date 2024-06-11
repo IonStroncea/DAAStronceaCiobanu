@@ -34,7 +34,7 @@
             // 
             // panel1
             // 
-            panel1.BackColor = SystemColors.ActiveCaptionText;
+            panel1.BackColor = SystemColors.ActiveBorder;
             panel1.Location = new Point(12, 12);
             panel1.Name = "panel1";
             panel1.Size = new Size(776, 426);

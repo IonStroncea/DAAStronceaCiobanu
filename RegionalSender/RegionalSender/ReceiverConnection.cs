@@ -62,7 +62,7 @@ namespace RegionalSender
                             {
                                 udpClient.Connect(x.Address.Split(":")[0], int.Parse(x.Address.Split(":")[1]));
                                 udpClient.Send(sendBytes, sendBytes.Length);
-                                Console.WriteLine($"Sent message:{message.Theme} time:{message.Time}");
+                                //Console.WriteLine($"Sent message:{message.Theme} time:{message.Time}");
                             }
                             catch { }
                         });
@@ -73,7 +73,7 @@ namespace RegionalSender
             }
         }
 
-        public void Run()
+        public void Run(Replicator replicator, int maxUsers)
         {
             UdpClient udpClient = new UdpClient();
             while (!_disposed)
@@ -91,6 +91,10 @@ namespace RegionalSender
                     if (receiverRequest != null)
                     {
                         _receivers.Add(new Receiver { Theme = receiverRequest.Theme, Address = RemoteIpEndPoint.Address.ToString() + ":" + receiverRequest.ReplyPort });
+                        if (_receivers.Count > maxUsers)
+                        {
+                            replicator.Replicate();
+                        }
                         if (ProcessorConnection != null)
                         {
                             ProcessorConnection.Connect(receiverRequest.Theme);

@@ -12,6 +12,10 @@
 
         public int Y { get; set; }
 
+        public int Size { get; set; }
+
+        public int Count { get; set; }
+
         public List<byte> Image { get; set; }
     }
 }

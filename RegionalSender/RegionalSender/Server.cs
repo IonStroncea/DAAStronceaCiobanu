@@ -19,10 +19,17 @@ namespace RegionalSender
         private ReceiverConnection _receiverConnection;
         private Configuration _configuration;
 
-        public void Run()
+        public void Run(string[] args)
         {
             string jsonConfig = File.ReadAllText("Configuration.json");
             _configuration = JsonConvert.DeserializeObject< Configuration >(jsonConfig) ?? new Configuration();
+
+            if (args.Length == 3)
+            {
+                _configuration.ProcessorPort = int.Parse(args[0]);
+                _configuration.ReceiverListenPort = int.Parse(args[1]);
+                _configuration.ReceiverSenderPort = int.Parse(args[2]);
+            }
 
             string roleName = "REGIONAL_SENDER";
             string roleKey = "REGIONAL_SENDER";
@@ -60,8 +67,10 @@ namespace RegionalSender
             _processorConnection = new ProcessorConnection(_dns, _authString, _configuration.ProcessorPort, _cacheSaver, _configuration);
             _receiverConnection.ProcessorConnection = _processorConnection;
 
+            Replicator replicator = new Replicator(_configuration);
+
             _cacheThread = new Thread(() => { _cacheSaver.Run(); });
-            _receiverThread = new Thread(() => { _receiverConnection.Run(); });
+            _receiverThread = new Thread(() => { _receiverConnection.Run(replicator, _configuration.MaxUsers); });
             _processorThread = new Thread(() => { _processorConnection.Run(); });
             _receiverThreadSend = new Thread(() => { _receiverConnection.RunReceivers(); });
 
